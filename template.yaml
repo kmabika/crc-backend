@@ -24,22 +24,7 @@ Resources:
       ProvisionedThroughput:
         ReadCapacityUnits: 1
         WriteCapacityUnits: 1
-  # CounterDynamoDBTable:
-  #   Type: AWS::DynamoDB::Table
-  #   Properties:
-  #     AttributeDefinitions:
-  #       - AttributeName: "siteUrl"
-  #         AttributeType: "S"
-
-  #     KeySchema:
-  #       - AttributeName: "siteUrl"
-  #         KeyType: "HASH"
-  #     TableName: !Ref DDBTableName
-  #     ProvisionedThroughput:
-  #       ReadCapacityUnits: 5
-  #       WriteCapacityUnits: 5
-
-  ApiGateWayApi:
+  GetCounterApi:
     Type: AWS::Serverless::Api
     Properties:
       StageName: prod
@@ -61,6 +46,7 @@ Resources:
       CodeUri: ./functions/get_counter
       Handler: get_counter.lambda_handler
       Runtime: python3.8
+      Timeout: 10
       Policies:
         - Version: "2012-10-17"
           Statement:
@@ -74,8 +60,12 @@ Resources:
           Properties:
             Path: /getVisitorCounter
             Method: get
-            RestApiId: !Ref ApiGateWayApi
+            RestApiId: !Ref GetCounterApi
       Environment:
         Variables:
           Environment: !Ref Environment
           DDBTableName: !Ref DDBTableName
+Outputs:
+  GetCounterApi:
+    Description: API Gateway endpoint URL to get document location based on documentId and versionId
+    Value: !Sub https://${MyApi}.execute-api.${AWS::Region}.amazonaws.com/prod/counter

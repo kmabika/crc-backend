@@ -2,7 +2,7 @@ import os
 import boto3
 import logging
 import json
-
+from botocore.exceptions import ClientError
 
 dynamo_client = boto3.resource('dynamodb')
 
@@ -24,46 +24,66 @@ def get_ddb_connection():
 def update_counter():
     table_name = os.environ['DDBTableName']
     client = get_ddb_connection()
-    client.update_item(
-        TableName=table_name,
-        Key={'siteUrl': {
-            'S': 'visitors'
-        }
-        },
-        ExpressionAttributeValues={
-            ':inc': {'N': '1'}
-        },
-        UpdateExpression="ADD visitors :inc"
-    )
-
-
-def get_counter():
-    table_name = os.environ['DDBTableName']
-    client = get_ddb_connection()
-    response = client.get_item(
-        TableName=table_name,
-        Key={
-            'siteUrl': {'S': 'visitors'}
-        }
-    )
-
-    item = response['Item']
-    # print(json.dumps(response))
-    count = int(item['visitors']['N'])
-    return count
+    try:
+        client.update_item(
+            TableName=table_name,
+            Key={'siteUrl': {
+                'S': 'visitors'
+            }
+            },
+            ExpressionAttributeValues={
+                ':inc': {'N': '1'}
+            },
+            UpdateExpression="ADD visitors :inc"
+        )
+    except client.exceptions.ResourceNotFoundException as e:
+        logging.error('Cannot do operations on a non-existent table')
+        raise e
+    except ClientError as e:
+        logging.error('Unexpected error')
+        raise e
 
 
 def lambda_handler(event, context):
     update_counter()
-    count = get_counter()
+    table_name = os.environ['DDBTableName']
+    client = get_ddb_connection()
+    try:
+        response = client.get_item(
+            TableName=table_name,
+            Key={
+                'siteUrl': {'S': 'visitors'}
+            }
+        )
 
-    return {
-        "statusCode": 200,
-        "headers": {
-            "Access-Control-Allow-Origin": "*"
-        },
-        "body": json.dumps({
-            "message": "success",
-            "count": count
-        })
-    }
+        if 'Item' in response:
+            item = response['Item']
+            count = int(item['visitors']['N'])
+
+            return {
+                'statusCode': response['ResponseMetadata']['HTTPStatusCode'],
+                'headers': {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': '*'
+                },
+                'body': str(count)
+            }
+
+        else:
+            return {
+                'statusCode': '404',
+                'headers': {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': '*'
+                },
+                'body': json.dumps({
+                    'message': 'Item not found'
+                }),
+            }
+
+    except client.exceptions.ResourceNotFoundException as e:
+        logging.error('Cannot do operation on a non-existent table')
+        raise e
+    except ClientError as e:
+        logging.error('Unexpected error')
+        raise e

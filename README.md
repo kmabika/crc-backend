@@ -13,3 +13,7 @@ Invoke cloud resume function
 ```
     $ sam local invoke CloudResumeFunction --parameter-overrides ParameterKey=Environment,  ParameterValue=local ParameterKey=DDBTableName,  ParameterValue=visitorTable --docker-network cloud-resume
 ```
+
+```
+    $ sam local start-api --parameter-overrides ParameterKey=Environment,ParameterValue=local ParameterKey=DDBTableName,ParameterValue=visitorTable --docker-network cloud-resume
+```
