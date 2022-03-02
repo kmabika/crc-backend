@@ -1,0 +1,81 @@
+#Required
+Transform: AWS::Serverless-2016-10-31
+#Optional
+Description: Cloud Resume App
+Parameters:
+  Environment:
+    Type: String
+    Description: Choose between local or aws
+    AllowedValues:
+      - local
+      - aws
+  DDBTableName:
+    Type: String
+    Description: The name of the DynamoDB tablename
+#Required
+Resources:
+  VisitorDB:
+    Type: AWS::Serverless::SimpleTable
+    Properties:
+      PrimaryKey:
+        Name: siteUrl
+        Type: String
+      TableName: !Ref DDBTableName
+      ProvisionedThroughput:
+        ReadCapacityUnits: 1
+        WriteCapacityUnits: 1
+  # CounterDynamoDBTable:
+  #   Type: AWS::DynamoDB::Table
+  #   Properties:
+  #     AttributeDefinitions:
+  #       - AttributeName: "siteUrl"
+  #         AttributeType: "S"
+
+  #     KeySchema:
+  #       - AttributeName: "siteUrl"
+  #         KeyType: "HASH"
+  #     TableName: !Ref DDBTableName
+  #     ProvisionedThroughput:
+  #       ReadCapacityUnits: 5
+  #       WriteCapacityUnits: 5
+
+  ApiGateWayApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: prod
+      Cors:
+        AllowMethods: "'OPTIONS,POST,GET,PUT,DELETE'"
+        AllowHeaders: "'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token,Z-Client-Timezone'"
+        AllowOrigin: "''"
+        MaxAge: "'3600'"
+      GatewayResponses:
+        DEFAULT_4xx:
+          ResponseParameters:
+            Headers:
+              Access-Control-Allow-Methods: "'OPTIONS,POST,GET,PUT,DELETE'"
+              Access-Control-Allow-Headers: "'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token'"
+              Access-Control-Allow-Origin: "'*'"
+  CloudResumeFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./functions/get_counter
+      Handler: get_counter.lambda_handler
+      Runtime: python3.8
+      Policies:
+        - Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Action:
+                - dynamodb:getItem
+              Resource: !GetAtt CounterDynamoDBTable.Arn
+      Events:
+        getCounter:
+          Type: Api
+          Properties:
+            Path: /getVisitorCounter
+            Method: get
+            RestApiId: !Ref ApiGateWayApi
+      Environment:
+        Variables:
+          Environment: !Ref Environment
+          DDBTableName: !Ref DDBTableName
