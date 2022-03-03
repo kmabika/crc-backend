@@ -9,9 +9,11 @@ Parameters:
     AllowedValues:
       - local
       - aws
+    Default: "aws"
   DDBTableName:
     Type: String
     Description: The name of the DynamoDB tablename
+    Default: "visitorTable"
 #Required
 Resources:
   VisitorDB:
@@ -53,7 +55,8 @@ Resources:
             - Effect: Allow
               Action:
                 - dynamodb:getItem
-              Resource: !GetAtt CounterDynamoDBTable.Arn
+                - dynamodb:updateItem
+              Resource: !GetAtt VisitorDB.Arn
       Events:
         getCounter:
           Type: Api
@@ -68,4 +71,4 @@ Resources:
 Outputs:
   GetCounterApi:
     Description: API Gateway endpoint URL to get document location based on documentId and versionId
-    Value: !Sub https://${MyApi}.execute-api.${AWS::Region}.amazonaws.com/prod/counter
+    Value: !Sub https://${GetCounterApi}.execute-api.${AWS::Region}.amazonaws.com/prod/counter

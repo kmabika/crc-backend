@@ -11,6 +11,11 @@ logger.setLevel(logging.INFO)
 
 
 def get_ddb_connection():
+    """Dynamodb connection for local or aws environment
+
+    Returns:
+        dynamodb client: returns the appropriate client for dev environment
+    """
     ENV = os.environ['Environment']
     ddbclient = ''
     if ENV == 'local':
@@ -22,6 +27,12 @@ def get_ddb_connection():
 
 
 def update_counter():
+    """Update counter function
+
+    Raises:
+        e: DynamoDB Table not found
+        e: Client Error
+    """
     table_name = os.environ['DDBTableName']
     client = get_ddb_connection()
     try:
@@ -45,6 +56,15 @@ def update_counter():
 
 
 def lambda_handler(event, context):
+    """Lambda handler
+
+    Raises:
+        e: Resource not found
+        e: Client Error
+
+    Returns:
+        json: counter or error
+    """
     update_counter()
     table_name = os.environ['DDBTableName']
     client = get_ddb_connection()
