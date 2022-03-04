@@ -86,7 +86,7 @@ def lambda_handler(event, context):
                     'Content-Type': 'application/json',
                     'Access-Control-Allow-Origin': '*'
                 },
-                'body': str(count)
+                'body': str(count),
             }
 
         else:

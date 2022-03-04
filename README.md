@@ -59,7 +59,14 @@ This is an optional step to test the AWS Serverless services locally before depl
     ```
 7. Test with curl
     ```sh
-        curl "http://127.0.0.1:3000/getCounter"
+        curl "http://127.0.0.1:3000/counter"
+    ```
+
+### SAM Package & Deploy
+
+1. Package the SAM App
+    ```sh
+
     ```
 
 <!-- ROADMAP -->
@@ -68,6 +75,4 @@ This is an optional step to test the AWS Serverless services locally before depl
 - [x] Setup AWS Serverless for local development
 - [x] Write lambda function code
 - [x] Deploy SAM Application to AWS.
-- [x] Python tests
-- [ ] CI/CD
-- [ ] Github actions
+- [X] CI/CD
