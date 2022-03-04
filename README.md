@@ -62,13 +62,6 @@ This is an optional step to test the AWS Serverless services locally before depl
         curl "http://127.0.0.1:3000/counter"
     ```
 
-### SAM Package & Deploy
-
-1. Package the SAM App
-    ```sh
-
-    ```
-
 <!-- ROADMAP -->
 ## Roadmap
 
